@@ -5,10 +5,12 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"testing"
 )
 
@@ -134,7 +136,7 @@ func addUsers(count int) {
 	}
 
 	for i := 0; i < count; i++ {
-		statement := fmt.Sprintf("INSERT INTO address_book(fname, lname, email, phone)VALUES ('%s', '%s', '%s', '%s')", ("Fname" + strconv.Itoa(i+1)), ("Lname" + strconv.Itoa(i+1)), ("email" + strconv.Itoa(i+1) + "@email.com"), ("Phone" + strconv.Itoa(i+1))
+		statement := fmt.Sprintf("INSERT INTO address_book(fname, lname, email, phone) VALUES ('%s', '%s', '%s', '%s')", ("Fname" + strconv.Itoa(i+1)), ("Lname" + strconv.Itoa(i+1)), ("email" + strconv.Itoa(i+1) + "@email.com"), ("Phone" + strconv.Itoa(i+1)))
 		a.DB.Exec(statement)
 	}
 }
