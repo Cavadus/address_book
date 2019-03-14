@@ -21,16 +21,27 @@ type App struct {
 
 func (a *App) Initialize(user, password, dbname string) {
 	connectionString := fmt.Sprintf("%s:%s@/%s", user, password, dbname)
+
 	var err error
 	a.DB, err = sql.Open("mysql", connectionString)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	a.Router = mux.NewRouter()
+	a.initializeRoutes()
+}
+
+func (a *App) initializeRoutes() {
+	a.Router.HandleFunc("/people", a.getUsers).Methods("GET")
+	a.Router.HandleFunc("/person", a.createUser).Methods("POST")
+	a.Router.HandleFunc("/person/{id:[0-9]+}", a.getUser).Methods("GET")
+	a.Router.HandleFunc("/person/{id:[0-9]+}", a.updateUser).Methods("PUT")
+	a.Router.HandleFunc("/person/{id:[0-9]+}", a.deleteUser).Methods("DELETE")
 }
 
 func (a *App) Run(addr string) {
-
+	log.Fatal(http.ListenAndServe(addr, a.Router))
 }
 
 func (a *App) getUser(w http.ResponseWriter, r *http.Request) {
@@ -56,6 +67,7 @@ func (a *App) getUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) getUsers(w http.ResponseWriter, r *http.Request) {
+	var p Person
 	count, _ := strconv.Atoi(r.FormValue("count"))
 	start, _ := strconv.Atoi(r.FormValue("start"))
 
@@ -65,14 +77,64 @@ func (a *App) getUsers(w http.ResponseWriter, r *http.Request) {
 	if start < 0 {
 		start = 0
 	}
-
-	people, err := getUsers(a.DB, start, count)
+	people, err := p.getUsers(a.DB, start, count)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	respondWithJSON(w, http.StatusOK, people)
+}
+
+func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
+	var p Person
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&p); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, p)
+}
+
+func (a *App) updateUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+	var p Person
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&p); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+	p.ID = id
+
+	if err := p.updateUser(a.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondWithJSON(w, http.StatusOK, p)
+}
+
+func (a *App) deleteUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+
+	p := Person{ID: id}
+	if err := p.deleteUser(a.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
 
 func respondWithError(w http.ResponseWriter, code int, message string) {
