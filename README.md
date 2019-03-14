@@ -25,7 +25,7 @@ The address book contains four VARCHAR(255) fields in addition to an auto-increm
 2. Last name (lname)
 3. E-mail address (email)
 4. Phone number (phone)
-
+```
 +--------------+-------------------+-------+------+--------------------+----------------+--+
 |    Field     |       Type        | Null  | Key  |      Default       |     Extra      |  |
 +--------------+-------------------+-------+------+--------------------+----------------+--+
@@ -36,7 +36,7 @@ The address book contains four VARCHAR(255) fields in addition to an auto-increm
 | phone        | varchar(255)      | YES   |      | NULL               |                |  |
 | createdDate  | datetime          | YES   |      | CURRENT_TIMESTAMP  |                |  |
 +--------------+-------------------+-------+------+--------------------+----------------+--+
-
+```
 ## SQL Statement
 If you wish:
 ```
