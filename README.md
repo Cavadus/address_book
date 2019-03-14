@@ -7,6 +7,11 @@ Address Book is a RESTful API utilizing a MySQL database and CSV import/export c
 ```
 git clone https://github.com/Cavadus/address_book.git
 cd address_book
+```
+
+At this point edit line #8 in main.go for your MySQL server connection details (username, password, database name).
+
+```
 go install
 ```
 
