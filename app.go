@@ -38,6 +38,8 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/person/{id:[0-9]+}", a.getUser).Methods("GET")
 	a.Router.HandleFunc("/person/{id:[0-9]+}", a.updateUser).Methods("PUT")
 	a.Router.HandleFunc("/person/{id:[0-9]+}", a.deleteUser).Methods("DELETE")
+	a.Router.HandleFunc("/import", a.importCSV).Methods("POST")
+	a.Router.HandleFunc("/export", a.exportCSV).Methods("GET")
 }
 
 func (a *App) Run(addr string) {
@@ -74,10 +76,14 @@ func (a *App) getUsers(w http.ResponseWriter, r *http.Request) {
 	if count > 10 || count < 1 {
 		count = 10
 	}
+
 	if start < 0 {
 		start = 0
 	}
+
 	people, err := p.getUsers(a.DB, start, count)
+
+	//people, err := p.getUsers(a.DB)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -137,13 +143,33 @@ func (a *App) deleteUser(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
 
+func (a *App) importCSV(w http.ResponseWriter, r *http.Request) {
+	var p Person
+	if err := p.importCSV(a.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, p)
+}
+
+func (a *App) exportCSV(w http.ResponseWriter, r *http.Request) {
+	var p Person
+	if err := p.exportCSV(a.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, p)
+
+}
+
 func respondWithError(w http.ResponseWriter, code int, message string) {
 	respondWithJSON(w, code, map[string]string{"error": message})
 }
 
 func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	response, _ := json.Marshal(payload)
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	w.Write(response)

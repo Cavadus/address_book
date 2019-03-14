@@ -4,7 +4,12 @@ package main
 
 import (
 	"database/sql"
+	"encoding/csv"
 	"fmt"
+	"os"
+
+	"github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type Person struct {
@@ -49,8 +54,10 @@ func (p *Person) createUser(db *sql.DB) error {
 	return nil
 }
 
-func (p *Person) getUsers(db *sql.DB, start, count int) ([]Person, error) {
+func (p *Person) getUsers(db *sql.DB, start int, count int) ([]Person, error) {
+	//func (p *Person) getUsers(db *sql.DB) ([]Person, error) {
 	statement := fmt.Sprintf("SELECT ID, fname, lname, email, phone FROM address_book LIMIT %d OFFSET %d", count, start)
+	//statement := fmt.Sprintf("SELECT * FROM address_book")
 	rows, err := db.Query(statement)
 
 	if err != nil {
@@ -72,10 +79,55 @@ func (p *Person) getUsers(db *sql.DB, start, count int) ([]Person, error) {
 	return people, nil
 }
 
-func (p *Person) importCSV(db *sql.DB) {
-
+func (p *Person) importCSV(db *sql.DB) error {
+	filePath := "/tmp/import.csv"
+	mysql.RegisterLocalFile(filePath)
+	statement := fmt.Sprintf("LOAD DATA LOCAL INFILE '" + filePath + "' INTO TABLE pizza_hut FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' IGNORE 1 ROWS (id, fname, lname, email, phone)")
+	_, err := db.Exec(statement)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (p *Person) exportCSV(db *sql.DB) {
+func (p *Person) exportCSV(db *sql.DB) error {
+	statement := fmt.Sprintf("SELECT * FROM address_book")
+	rows, err := db.Query(statement)
+	if err != nil {
+		return err
+	}
 
+	colNames, err := rows.Columns()
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create("exported.csv")
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	writer.Comma = '\t'
+	readCols := make([]interface{}, len(colNames))
+	writeCols := make([]string, len(colNames))
+
+	for i := range writeCols {
+		readCols[i] = &writeCols[i]
+	}
+
+	for rows.Next() {
+		err := rows.Scan(readCols...)
+		if err != nil {
+			return err
+		}
+		writer.Write(writeCols)
+	}
+
+	if err = rows.Err(); err != nil {
+		return err
+	}
+	writer.Flush()
+	return nil
 }
