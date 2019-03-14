@@ -10,7 +10,7 @@ cd address_book
 ```
 
 At this point edit line #8 in main.go for your MySQL server connection details (username, password, database name).
-
+cd address
 ```
 go install
 ```
@@ -56,16 +56,14 @@ CREATE TABLE address_book (
 );
 ```
 
-#	
+# Running the Application
+```cd address_book
+go run main.go
+```
 
-
-
-```python
-import foobar
-
-foobar.pluralize('word') # returns 'words'
-foobar.pluralize('goose') # returns 'geese'
-foobar.singularize('phenomena') # returns 'phenomenon'
+You cano visit the API's server at:
+```
+http://localhost:8080/entries
 ```
 
 ## Contributing

@@ -33,11 +33,11 @@ func (a *App) Initialize(user, password, dbname string) {
 }
 
 func (a *App) initializeRoutes() {
-	a.Router.HandleFunc("/people", a.getUsers).Methods("GET")
-	a.Router.HandleFunc("/person", a.createUser).Methods("POST")
-	a.Router.HandleFunc("/person/{id:[0-9]+}", a.getUser).Methods("GET")
-	a.Router.HandleFunc("/person/{id:[0-9]+}", a.updateUser).Methods("PUT")
-	a.Router.HandleFunc("/person/{id:[0-9]+}", a.deleteUser).Methods("DELETE")
+	a.Router.HandleFunc("/entries", a.getUsers).Methods("GET")
+	a.Router.HandleFunc("/entry", a.createUser).Methods("POST")
+	a.Router.HandleFunc("/entry/{id:[0-9]+}", a.getUser).Methods("GET")
+	a.Router.HandleFunc("/entry/{id:[0-9]+}", a.updateUser).Methods("PUT")
+	a.Router.HandleFunc("/entry/{id:[0-9]+}", a.deleteUser).Methods("DELETE")
 	a.Router.HandleFunc("/import", a.importCSV).Methods("POST")
 	a.Router.HandleFunc("/export", a.exportCSV).Methods("GET")
 }
